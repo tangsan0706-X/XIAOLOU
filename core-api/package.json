@@ -1,0 +1,14 @@
+{
+  "name": "core-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "verify": "node scripts/verify.js"
+  },
+  "dependencies": {
+    "ws": "^8.20.0"
+  }
+}

@@ -1,0 +1,30 @@
+.DS_Store
+Thumbs.db
+
+# Dependencies
+**/node_modules/
+
+# Build output
+**/dist/
+**/build/
+coverage/
+
+# Environment
+**/.env
+**/.env.local
+!**/.env.example
+
+# Logs
+*.log
+*.err.log
+*.out.log
+
+# Local runtime data
+.playwright-cli/
+output/
+core-api/data/
+core-api/tmp/
+core-api/uploads/
+
+# Local screenshots and exports
+屏幕截图*.png
