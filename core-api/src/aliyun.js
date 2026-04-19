@@ -2387,8 +2387,17 @@ async function prepareArkReferenceImageUrl(value) {
 
   // Fallback: build public URL using CORE_API_PUBLIC_BASE_URL
   const publicBase = String(process.env.CORE_API_PUBLIC_BASE_URL || "").replace(/\/$/, "");
-  if (publicBase && typeof value === "string" && value.startsWith("/uploads/")) {
-    return `${publicBase}${value}`;
+  if (publicBase) {
+    // value may be a /uploads/ path or a data: URL already converted from a local file
+    if (typeof value === "string" && value.startsWith("/uploads/")) {
+      return `${publicBase}${value}`;
+    }
+  }
+
+  // Last-resort fallback: pass the image as a base64 data URL directly to Ark.
+  // The Volcengine Ark image-generation API accepts base64 images in the `image` field.
+  if (localSource.buffer && localSource.contentType) {
+    return `data:${localSource.contentType};base64,${localSource.buffer.toString("base64")}`;
   }
 
   return null;
@@ -2507,6 +2516,12 @@ async function generateImagesWithAliyun({
     }
 
     const referenceList = Array.isArray(referenceImageUrls) ? referenceImageUrls.filter(Boolean) : [];
+    // Pre-upload any local/data-URL references to a publicly accessible URL.
+    // Yunwu's /v1/chat/completions only accepts public HTTP URLs in image_url, not data: URIs.
+    const rawRefList = referenceList.length ? referenceList : referenceImageUrl ? [referenceImageUrl] : [];
+    const preparedRefList = await Promise.all(rawRefList.map(prepareYunwuVideoImageUrl));
+    const validRefList = preparedRefList.filter(Boolean);
+
     const mergedPrompt = [
       String(prompt || "").trim(),
       negativePrompt?.trim() ? `Negative prompt: ${negativePrompt.trim()}` : "",
@@ -2525,7 +2540,7 @@ async function generateImagesWithAliyun({
           .filter(Boolean)
           .join("\n"),
       },
-      ...(referenceList.length ? referenceList : referenceImageUrl ? [referenceImageUrl] : []).map((url) => ({
+      ...validRefList.map((url) => ({
         type: "image_url",
         image_url: { url },
       })),
