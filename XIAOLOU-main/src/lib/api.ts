@@ -445,6 +445,18 @@ export type CreditQuote = {
   reason: string | null;
 };
 
+export type CreditQuoteRequestInput = {
+  projectId?: string | null;
+  sourceText?: string;
+  text?: string;
+  count?: number;
+  shotCount?: number;
+  storyboardId?: string;
+  model?: string;
+  aspectRatio?: string;
+  resolution?: string;
+};
+
 export type PricingRule = {
   id: string;
   actionCode: string;
@@ -659,6 +671,7 @@ export type CreateImageResult = {
   resolution: string;
   referenceImageUrl?: string | null;
   referenceImageUrls?: string[];
+  batchIndex?: number;
   imageUrl: string;
   createdAt: string;
 };
@@ -694,6 +707,13 @@ export type CreateVideoResult = {
   videoMode?: string | null;
   inputMode?: VideoInputMode | null;
   multiReferenceImages?: VideoMultiReferenceImages | null;
+  referenceVideoUrls?: string[] | null;
+  referenceAudioUrls?: string[] | null;
+  editMode?: string | null;
+  editPresetId?: string | null;
+  motionReferenceVideoUrl?: string | null;
+  characterReferenceImageUrl?: string | null;
+  qualityMode?: string | null;
   thumbnailUrl: string;
   videoUrl: string;
   createdAt: string;
@@ -1168,8 +1188,15 @@ export async function generateCreateVideos(input: {
   referenceImageUrl?: string;
   firstFrameUrl?: string;
   lastFrameUrl?: string;
-  videoMode?: VideoGenerationMode;
+  videoMode?: VideoGenerationMode | "video_edit" | "motion_control" | "video_extend";
   multiReferenceImages?: VideoMultiReferenceImages;
+  referenceVideoUrls?: string[];
+  referenceAudioUrls?: string[];
+  editMode?: string;
+  editPresetId?: string;
+  motionReferenceVideoUrl?: string;
+  characterReferenceImageUrl?: string;
+  qualityMode?: string;
   generateAudio?: boolean;
   networkSearch?: boolean;
   idempotencyKey?: string;
@@ -1372,23 +1399,35 @@ export async function autoGenerateStoryboards(
   });
 }
 
-export async function getProjectCreditQuote(
-  projectId: string,
-  actionCode: string,
-  input?: {
-    sourceText?: string;
-    text?: string;
-    count?: number;
-    shotCount?: number;
-    storyboardId?: string;
-  },
-) {
-  const search = new URLSearchParams({ action: actionCode });
+function appendCreditQuoteInput(search: URLSearchParams, input?: CreditQuoteRequestInput) {
+  if (input?.projectId) search.set("projectId", input.projectId);
   if (input?.sourceText) search.set("sourceText", input.sourceText);
   if (input?.text) search.set("text", input.text);
   if (input?.count) search.set("count", String(input.count));
   if (input?.shotCount) search.set("shotCount", String(input.shotCount));
   if (input?.storyboardId) search.set("storyboardId", input.storyboardId);
+  if (input?.model) search.set("model", input.model);
+  if (input?.aspectRatio) search.set("aspectRatio", input.aspectRatio);
+  if (input?.resolution) search.set("resolution", input.resolution);
+}
+
+export async function getCreateCreditQuote(actionCode: string, input?: CreditQuoteRequestInput) {
+  if (input?.projectId) {
+    return getProjectCreditQuote(input.projectId, actionCode, input);
+  }
+
+  const search = new URLSearchParams({ action: actionCode });
+  appendCreditQuoteInput(search, input);
+  return request<CreditQuote>(`/api/create/credit-quote?${search.toString()}`);
+}
+
+export async function getProjectCreditQuote(
+  projectId: string,
+  actionCode: string,
+  input?: CreditQuoteRequestInput,
+) {
+  const search = new URLSearchParams({ action: actionCode });
+  appendCreditQuoteInput(search, input);
 
   return request<CreditQuote>(`/api/projects/${projectId}/credit-quote?${search.toString()}`);
 }
@@ -2240,6 +2279,9 @@ export type VideoReplaceJobStatus = {
   queue_position?: number | null;
   created_at: string;
   updated_at: string;
+  actor_id?: string | null;
+  project_id?: string | null;
+  project_asset_id?: string | null;
   source_video_url: string | null;
   thumbnail_url: string | null;
   meta: VideoReplaceMeta | null;
@@ -2339,6 +2381,7 @@ export async function uploadVideoReplaceSource(file: File) {
 export async function importVideoReplaceJob(input: {
   video_url: string;
   original_filename?: string;
+  project_id?: string | null;
 }) {
   return videoReplaceRequest<VideoReplaceUploadResult>("/jobs", {
     method: "POST",
@@ -2404,9 +2447,11 @@ export async function getVideoReplaceJob(jobId: string) {
   );
 }
 
-export async function listVideoReplaceJobs(limit = 30) {
+export async function listVideoReplaceJobs(limit = 30, projectId?: string | null) {
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (projectId) params.set("project_id", projectId);
   return videoReplaceRequest<{ items: VideoReplaceJobStatus[] }>(
-    `/jobs?limit=${encodeURIComponent(String(limit))}`,
+    `/jobs?${params.toString()}`,
   );
 }
 
@@ -2428,5 +2473,6 @@ export async function cancelVideoReplaceJob(jobId: string) {
 }
 
 export function videoReplaceStreamUrl(jobId: string): string {
-  return `${VIDEO_REPLACE_BASE}/jobs/${encodeURIComponent(jobId)}/stream`;
+  const params = new URLSearchParams({ actorId: getCurrentActorId() });
+  return `${VIDEO_REPLACE_BASE}/jobs/${encodeURIComponent(jobId)}/stream?${params.toString()}`;
 }

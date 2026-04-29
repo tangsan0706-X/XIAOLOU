@@ -106,7 +106,7 @@ export const useWorkflow = ({
             // Direct-embed mode: call host services save directly
             if (hasCanvasHostServices()) {
                 const services = getCanvasHostServices();
-                await services?.saveCanvas(workflowSnapshot, imageUrls);
+                void services?.saveCanvas(workflowSnapshot, imageUrls);
             }
 
             // iframe mode: notify parent via postMessage
