@@ -557,7 +557,7 @@ const FIXED_CREATE_VIDEO_CAPABILITIES = {
       duration: "8s",
       aspectRatio: "16:9",
       resolution: "720p",
-      supportedDurations: ["8s"],
+      supportedDurations: ["4s", "6s", "8s"],
       supportedAspectRatios: ["16:9"],
       supportedResolutions: ["720p"],
     },
@@ -565,7 +565,7 @@ const FIXED_CREATE_VIDEO_CAPABILITIES = {
       duration: "8s",
       aspectRatio: "16:9",
       resolution: "720p",
-      supportedDurations: ["8s"],
+      supportedDurations: ["4s", "6s", "8s"],
       supportedAspectRatios: ["16:9"],
       supportedResolutions: ["720p"],
     },
@@ -1484,10 +1484,10 @@ const CREATE_VIDEO_MULTI_PARAM_MODELS = [
     inputModes: {
       multi_param: createVideoCapabilitySet({
         status: "stable",
-        supportedDurations: ["8s"],
+        supportedDurations: ["4s", "6s", "8s"],
         supportedAspectRatios: ["16:9", "9:16"],
         supportedResolutions: ["1080p", "720p"],
-        durationControl: "fixed",
+        durationControl: "selectable",
         aspectRatioControl: "selectable",
         resolutionControl: "selectable",
         defaultDuration: "8s",
@@ -1512,10 +1512,10 @@ const CREATE_VIDEO_MULTI_PARAM_MODELS = [
     inputModes: {
       multi_param: createVideoCapabilitySet({
         status: "stable",
-        supportedDurations: ["8s"],
+        supportedDurations: ["4s", "6s", "8s"],
         supportedAspectRatios: ["16:9", "9:16"],
         supportedResolutions: ["1080p", "720p"],
-        durationControl: "fixed",
+        durationControl: "selectable",
         aspectRatioControl: "selectable",
         resolutionControl: "selectable",
         defaultDuration: "8s",

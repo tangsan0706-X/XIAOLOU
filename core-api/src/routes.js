@@ -31,6 +31,7 @@ const {
 const { createUploadFromBuffer } = require("./uploads");
 const { decodeAuthToken } = require("./store");
 const { buildCanvasLibraryRoutes } = require("./canvas-library");
+const { filterVisibleVideoReplaceAssets } = require("./video-replace-native");
 const { isLocalLoopbackClientHint, SUPER_ADMIN_DEMO_ACTOR_ID } = require("./local-loopback-request");
 const {
   createLiveRechargeSession,
@@ -753,9 +754,17 @@ function buildProjectRoutes(store) {
       );
     }),
     route("GET", "/api/projects/:projectId/assets", ({ params, req, url }) => {
-      store.assertProjectAccess(params.projectId, getActorId(req, url));
+      const actorId = getActorId(req, url);
+      store.assertProjectAccess(params.projectId, actorId);
       const assetType = url.searchParams.get("assetType");
-      return ok({ items: store.listAssets(params.projectId, assetType) });
+      return ok({
+        items: filterVisibleVideoReplaceAssets(
+          store.listAssets(params.projectId, assetType),
+          actorId,
+          params.projectId,
+          store,
+        ),
+      });
     }),
       routeWithStatus("POST", "/api/projects/:projectId/assets/extract", 202, async ({ params, req, url }) => {
         const body = await readJsonBody(req);
@@ -822,8 +831,15 @@ function buildProjectRoutes(store) {
       return ok(asset);
     }),
     route("GET", "/api/projects/:projectId/assets/:assetId", ({ params, req, url }) => {
-      store.assertProjectAccess(params.projectId, getActorId(req, url));
+      const actorId = getActorId(req, url);
+      store.assertProjectAccess(params.projectId, actorId);
       const asset = store.getAsset(params.projectId, params.assetId);
+      if (
+        asset &&
+        !filterVisibleVideoReplaceAssets([asset], actorId, params.projectId, store).length
+      ) {
+        return failure(404, "NOT_FOUND", "asset not found");
+      }
       if (!asset) return failure(404, "NOT_FOUND", "asset not found");
       return ok(asset);
     }),

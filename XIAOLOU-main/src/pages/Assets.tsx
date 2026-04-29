@@ -543,8 +543,10 @@ export default function Assets() {
       }
 
       try {
-        const response = await listVideoReplaceJobs(30);
-        const jobs = response.items.filter((item) => Boolean(item.source_video_url));
+        const response = await listVideoReplaceJobs(30, currentProjectId);
+        const jobs = response.items.filter(
+          (item) => Boolean(item.source_video_url) && item.project_id === currentProjectId,
+        );
         await Promise.allSettled(
           jobs.map((item) => syncVideoReplaceJobAsset(currentProjectId, item.job_id)),
         );
