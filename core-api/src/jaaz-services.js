@@ -38,7 +38,7 @@ function resolveServiceConfig() {
   const jaazRoot = resolveWorkspacePath(process.env.JAAZ_ROOT, path.join(WORKSPACE_ROOT, "jaaz"));
   const apiPort = readNumberEnv("JAAZ_API_PORT", DEFAULT_JAAZ_API_PORT);
   const uiPort = readNumberEnv("JAAZ_UI_PORT", DEFAULT_JAAZ_UI_PORT);
-  const uiMode = String(process.env.JAAZ_UI_MODE || "auto").trim().toLowerCase();
+  const uiMode = String(process.env.JAAZ_UI_MODE || "static").trim().toLowerCase();
   const pythonExecutable = resolveCommandOrPath(
     process.env.JAAZ_PYTHON,
     path.join(jaazRoot, ".venv", "Scripts", "python.exe"),
@@ -56,7 +56,7 @@ function resolveServiceConfig() {
     uiOutLog: path.join(jaazRoot, "react", "vite-dev.log"),
     uiErrLog: path.join(jaazRoot, "react", "vite-dev.err.log"),
     uiDistDir: path.join(jaazRoot, "react", "dist"),
-    uiMode: uiMode === "dev" || uiMode === "preview" ? uiMode : "auto",
+    uiMode: ["auto", "dev", "off", "preview", "static"].includes(uiMode) ? uiMode : "static",
   };
 }
 
@@ -198,6 +198,29 @@ async function ensureApi(config) {
 }
 
 async function ensureUi(config) {
+  const hasProductionBuild = isFile(path.join(config.uiDistDir, "index.html"));
+  const useStatic =
+    config.uiMode === "static" ||
+    config.uiMode === "off" ||
+    (config.uiMode === "auto" && hasProductionBuild);
+
+  if (useStatic) {
+    return {
+      name: "ui",
+      port: config.uiPort,
+      listening: false,
+      started: false,
+      mode: "static",
+      dist: config.uiDistDir,
+      staticServed: hasProductionBuild,
+      ...(hasProductionBuild
+        ? {}
+        : {
+            error: `Jaaz UI dist not found: ${config.uiDistDir}. Run vite build in jaaz/react or set JAAZ_UI_MODE=dev.`,
+          }),
+    };
+  }
+
   if (await isPortListening(config.uiPort)) {
     return {
       name: "ui",
@@ -217,7 +240,6 @@ async function ensureUi(config) {
     };
   }
 
-  const hasProductionBuild = isFile(path.join(config.uiDistDir, "index.html"));
   const usePreview =
     config.uiMode === "preview" ||
     (config.uiMode === "auto" && hasProductionBuild);
@@ -274,10 +296,13 @@ async function ensureUi(config) {
 
 async function getJaazServiceStatus() {
   const config = resolveServiceConfig();
-  const [apiListening, uiListening] = await Promise.all([
-    isPortListening(config.apiPort),
-    isPortListening(config.uiPort),
-  ]);
+  const hasProductionBuild = isFile(path.join(config.uiDistDir, "index.html"));
+  const useStatic =
+    config.uiMode === "static" ||
+    config.uiMode === "off" ||
+    (config.uiMode === "auto" && hasProductionBuild);
+  const apiListening = await isPortListening(config.apiPort);
+  const uiListening = useStatic ? false : await isPortListening(config.uiPort);
 
   return {
     enabled: isAutoStartEnabled(),
@@ -291,7 +316,9 @@ async function getJaazServiceStatus() {
       name: "ui",
       port: config.uiPort,
       listening: uiListening,
-      mode: config.uiMode,
+      mode: useStatic ? "static" : config.uiMode,
+      dist: config.uiDistDir,
+      staticServed: useStatic && hasProductionBuild,
     },
   };
 }
@@ -369,5 +396,6 @@ function startJaazKeepAlive() {
 module.exports = {
   ensureJaazServices,
   getJaazServiceStatus,
+  resolveServiceConfig,
   startJaazKeepAlive,
 };

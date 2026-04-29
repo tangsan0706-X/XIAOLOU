@@ -6,15 +6,15 @@
 # HTTPS 域名入口：Caddy 自动向 Let's Encrypt 申请证书
 www.xiaolouai.cn {
 	handle /jaaz* {
-		reverse_proxy localhost:5174
+		reverse_proxy localhost:4100
 	}
 
-	handle_path /jaaz-api/* {
-		reverse_proxy localhost:57988
+	handle /jaaz-api* {
+		reverse_proxy localhost:4100
 	}
 
 	handle /socket.io/* {
-		reverse_proxy localhost:57988
+		reverse_proxy localhost:4100
 	}
 
 	handle /api/* {
@@ -41,15 +41,15 @@ www.xiaolouai.cn {
 # Xiaolou official domain, HTTP first.
 http://www.xiaolou.cn, http://xiaolou.cn {
 	handle /jaaz* {
-		reverse_proxy localhost:5174
+		reverse_proxy localhost:4100
 	}
 
-	handle_path /jaaz-api/* {
-		reverse_proxy localhost:57988
+	handle /jaaz-api* {
+		reverse_proxy localhost:4100
 	}
 
 	handle /socket.io/* {
-		reverse_proxy localhost:57988
+		reverse_proxy localhost:4100
 	}
 
 	handle /api/* {
@@ -74,15 +74,15 @@ http://www.xiaolou.cn, http://xiaolou.cn {
 
 http://www.aitianmu.cn, http://aitianmu.cn {
 	handle /jaaz* {
-		reverse_proxy localhost:5174
+		reverse_proxy localhost:4100
 	}
 
-	handle_path /jaaz-api/* {
-		reverse_proxy localhost:57988
+	handle /jaaz-api* {
+		reverse_proxy localhost:4100
 	}
 
 	handle /socket.io/* {
-		reverse_proxy localhost:57988
+		reverse_proxy localhost:4100
 	}
 
 	handle /api/* {
@@ -107,15 +107,15 @@ http://www.aitianmu.cn, http://aitianmu.cn {
 
 :80 {
 	handle /jaaz* {
-		reverse_proxy localhost:5174
+		reverse_proxy localhost:4100
 	}
 
-	handle_path /jaaz-api/* {
-		reverse_proxy localhost:57988
+	handle /jaaz-api* {
+		reverse_proxy localhost:4100
 	}
 
 	handle /socket.io/* {
-		reverse_proxy localhost:57988
+		reverse_proxy localhost:4100
 	}
 
 	handle /api/* {
@@ -134,15 +134,15 @@ http://www.aitianmu.cn, http://aitianmu.cn {
 # 8080 备用端口：ISP 封 80 时外网可通过此端口访问（非标准端口一般不封）
 :8080 {
 	handle /jaaz* {
-		reverse_proxy localhost:5174
+		reverse_proxy localhost:4100
 	}
 
-	handle_path /jaaz-api/* {
-		reverse_proxy localhost:57988
+	handle /jaaz-api* {
+		reverse_proxy localhost:4100
 	}
 
 	handle /socket.io/* {
-		reverse_proxy localhost:57988
+		reverse_proxy localhost:4100
 	}
 
 	handle /api/* {

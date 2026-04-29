@@ -89,7 +89,7 @@ function Canvas() {
         />
         <ResizablePanelGroup
           direction='horizontal'
-          className='w-screen h-screen'
+          className='w-screen min-h-0 flex-1'
           autoSaveId='jaaz-chat-panel'
         >
           <ResizablePanel className='relative' defaultSize={75}>
@@ -113,7 +113,7 @@ function Canvas() {
           <ResizableHandle />
 
           <ResizablePanel defaultSize={25}>
-            <div className='flex-1 flex-grow bg-accent/50 w-full'>
+            <div className='flex h-full min-h-0 w-full flex-1 flex-grow border-l border-slate-200/80 bg-[#f7f8fb] shadow-[-14px_0_34px_rgba(15,23,42,0.05)] dark:border-white/10 dark:bg-slate-950'>
               <ChatInterface
                 canvasId={id}
                 sessionList={sessionList}

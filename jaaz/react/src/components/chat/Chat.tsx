@@ -655,10 +655,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   return (
     <PhotoProvider>
-      <div className='flex flex-col h-screen relative'>
+      <div className='relative flex h-full min-h-0 flex-col overflow-hidden bg-gradient-to-b from-white via-[#f8fafc] to-[#f5f7fb] dark:from-slate-950 dark:via-slate-950 dark:to-slate-900'>
         {/* Chat messages */}
 
-        <header className='flex items-center px-2 py-2 absolute top-0 z-1 w-full'>
+        <header className='absolute top-0 z-10 flex w-full items-center border-b border-slate-200/70 bg-white/[0.82] px-3 py-2 shadow-[0_8px_24px_rgba(15,23,42,0.04)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/[0.82]'>
           <div className='flex-1 min-w-0'>
             <SessionSelector
               session={session}
@@ -680,12 +680,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             </Button>
           )} */}
 
-          <Blur className='absolute top-0 left-0 right-0 h-full -z-1' />
+          <Blur className='absolute top-0 left-0 right-0 h-full -z-1' bgOpacity={45} />
         </header>
 
-        <ScrollArea className='h-[calc(100vh-45px)]' viewportRef={scrollRef}>
+        <ScrollArea className='min-h-0 flex-1' viewportRef={scrollRef}>
           {messages.length > 0 ? (
-            <div className='flex flex-col flex-1 px-4 pb-50 pt-15'>
+            <div className='flex flex-1 flex-col px-4 pb-50 pt-16'>
               {hasOlderMessages && (
                 <div className='flex justify-center pb-3'>
                   <Button
@@ -702,7 +702,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               )}
               {/* Messages */}
               {messages.map((message, idx) => (
-                <div key={`${idx}`} className='flex flex-col gap-4 mb-2'>
+                <div key={`${idx}`} className='mb-3 flex flex-col gap-3'>
                   {/* Regular message content */}
                   {typeof message.content == 'string' &&
                     (message.role !== 'tool' ? (
@@ -819,7 +819,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           )}
         </ScrollArea>
 
-        <div className='p-2 gap-2 sticky bottom-0'>
+        <div className='sticky bottom-0 gap-2 border-t border-slate-200/50 bg-white/[0.72] p-2 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/[0.72]'>
           <ChatTextarea
             sessionId={sessionId!}
             pending={!!pending}
